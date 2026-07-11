@@ -3,10 +3,10 @@
         "Name": "Assets",
         "Description": "Carpeta raíz.",
         "FolderColor": {
-            "r": 0.07262372225522995,
-            "g": 0.8062242865562439,
-            "b": 0.9056603908538818,
-            "a": 1.0
+            "r": 1.0,
+            "g": 1.0,
+            "b": 1.0,
+            "a": 0.0
         },
         "AllowedExtensions": [],
         "IsExpanded": true,
