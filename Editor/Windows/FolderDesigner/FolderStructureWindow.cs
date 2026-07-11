@@ -16,7 +16,7 @@ namespace Folio.Editor.Windows
         private const string USER_FILE = "user_structure.json";
 
         // Ruta del paquete (Solo lectura, datos de fábrica)
-        private const string DEFAULT_DATA_PATH = "Packages/Folio: DevSuite/Resources/FolderDesigner/default_structure.json";
+        private const string DEFAULT_DATA_PATH = "Packages/com.folio.devsuite/Resources/FolderDesigner/default_structure.json";
 
         [MenuItem("Window/Folio/🦎 Flux: Folder Designer", false, 20)]
         public static void ShowWindow()
