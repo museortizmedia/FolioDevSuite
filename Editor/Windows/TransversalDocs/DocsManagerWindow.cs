@@ -36,6 +36,15 @@ namespace Folio.Editor.Windows
         // IMAGENES
         private const string ImagesFolderRelative = "Assets/Folio/Resources/DocsManager/imagenes";
         private string ImagesFolderAbsolute => Path.Combine(Application.dataPath, "Folio/Resources/DocsManager/imagenes");
+        private string GetPackageImagesPath()
+        {
+            var package = UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(DocsManagerWindow).Assembly);
+            if (package != null)
+            {
+                return Path.Combine(package.resolvedPath, "Resources/DocsManager/imagenes");
+            }
+            return string.Empty;
+        }
 
 
         // VARIABLES TEMA
@@ -67,6 +76,21 @@ namespace Folio.Editor.Windows
             if (!Directory.Exists(ImagesFolderAbsolute))
             {
                 Directory.CreateDirectory(ImagesFolderAbsolute);
+                string sourcePath = GetPackageImagesPath();
+                if (!string.IsNullOrEmpty(sourcePath) && Directory.Exists(sourcePath))
+                {
+                    string[] files = Directory.GetFiles(sourcePath);
+                    
+                    foreach (string file in files)
+                    {
+                        if (!file.EndsWith(".meta"))
+                        {
+                            string fileName = Path.GetFileName(file);
+                            string destFile = Path.Combine(ImagesFolderAbsolute, fileName);
+                            File.Copy(file, destFile, true);
+                        }
+                    }
+                }
                 AssetDatabase.Refresh();
             }
 
