@@ -146,9 +146,9 @@ namespace Folio.Editor.Windows
     ">>>> Markdown is a lightweight markup language with plain-text-formatting syntax, created in 2004 by John Gruber with Aaron Swartz.\n\n" +
     ">>>>> Markdown is a lightweight markup language with plain-text-formatting syntax, created in 2004 by John Gruber with Aaron Swartz.\n\n" +
     "## Images\n" +
-    "![icono|md](Assets/Packages/Folio/icon.png)\n\n" +
-    "![icono|85x85](Assets/Packages/Folio/icon.png)\n\n" +
-    "![icono](Assets/Packages/Folio/icon.png)\n\n\n" +
+    "![icono|md](Assets/Folio/Resources/DocsManager/imagenes/icon.png)\n\n" +
+    "![icono|85x85](Assets/Folio/Resources/DocsManager/imagenes/icon.png)\n\n" +
+    "![icono](Assets/Folio/Resources/DocsManager/imagenes/icon.png)\n\n\n" +
     "## Tables\n\n" +
     "| Left columns | Right columns |\n" +
     "| :--- | :--- |\n" +
