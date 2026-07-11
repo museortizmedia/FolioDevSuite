@@ -295,8 +295,15 @@ namespace Folio.Editor.Windows
 
         private void SaveData()
         {
+            string directory = Path.GetDirectoryName(SAVE_PATH);
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+            
             string json = JsonUtility.ToJson(taskDatabase, true);
             File.WriteAllText(SAVE_PATH, json);
+
             AssetDatabase.Refresh();
             isDirty = false;
         }
