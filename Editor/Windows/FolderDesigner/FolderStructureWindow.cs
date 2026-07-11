@@ -88,30 +88,22 @@ namespace Folio.Editor.Windows
         {
             var package = UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(FolderStructureWindow).Assembly);
             return package != null 
-                ? Path.Combine(package.resolvedPath, "Assets/Folio/Resources/FolderDesigner/default_structure.json") 
+                ? Path.Combine(package.resolvedPath, "Packages/com.folio.devsuite/Resources/FolderDesigner/default_structure.json") 
                 : string.Empty;
         }
 
         private void LoadDefaultStructure()
         {
-            // Ruta A: La ruta de fábrica dentro del paquete
             string factoryPath = GetDefaultDataPath(); 
-            
-            // Ruta B: La ruta de usuario (donde el usuario podría haber puesto una copia de seguridad)
             string userFallbackPath = Path.Combine(USER_SAVE_FOLDER, "default_structure.json");
-
-            // LÓGICA DE CASCADA:
-            // 1. Intentar cargar desde el paquete (Fábrica)
             if (File.Exists(factoryPath))
             {
                 LoadFromFile(factoryPath, "<color=#00FF00>[🦎 Folio-Flux:]</color> Estructura de fábrica cargada desde el paquete.");
             }
-            // 2. Si falla el paquete, intentar buscar el default en la carpeta de usuario
             else if (File.Exists(userFallbackPath))
             {
                 LoadFromFile(userFallbackPath, "<color=#00FF00>[🦎 Folio-Flux:]</color> Estructura de fábrica no encontrada en paquete, cargada desde carpeta de usuario.");
             }
-            // 3. Fallo total
             else
             {
                 Debug.LogError($"No se pudo encontrar default_structure.json en ninguna ruta: {factoryPath} ni {userFallbackPath}");
