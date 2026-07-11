@@ -304,7 +304,7 @@ namespace Folio.Editor.Windows
             string json = JsonUtility.ToJson(taskDatabase, true);
             File.WriteAllText(SAVE_PATH, json);
 
-            Debug.Log("<color=yellow>[Folio-Nexo:]</color> ¡Tareas Guardadas!");
+            Debug.Log("<color=yellow>[🐝 Folio-Nexo:]</color> ¡Tareas Guardadas!");
 
             AssetDatabase.Refresh();
             isDirty = false;
@@ -336,7 +336,7 @@ namespace Folio.Editor.Windows
             {
                 string json = File.ReadAllText(SAVE_PATH);
                 taskDatabase = JsonUtility.FromJson<TaskDatabase>(json);
-                Debug.Log("<color=yellow>[🐝 Folio-Nexo:]</color> Base de datos cargada desde: " + SAVE_PATH);
+                //Debug.Log("<color=yellow>[🐝 Folio-Nexo:]</color> Base de datos cargada desde: " + SAVE_PATH);
             }
             else
             {
