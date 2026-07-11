@@ -10,12 +10,11 @@ namespace Folio.Editor.Windows
     {
         private FolderNode rootNode;
         private Vector2 scroll;
+        private List<FolderNode> nodesToRemove = new List<FolderNode>();
 
-        // Ruta de usuario (Persistente en el proyecto)
         private const string USER_SAVE_FOLDER = "Assets/Folio/Resources/FolderDesigner/";
         private const string USER_FILE = "user_structure.json";
 
-        // Ruta del paquete (Solo lectura, datos de fábrica)
         private const string DEFAULT_DATA_PATH = "Packages/com.folio.devsuite/Resources/FolderDesigner/default_structure.json";
 
         [MenuItem("Window/Folio/🦎 Flux: Folder Designer", false, 20)]
@@ -27,7 +26,6 @@ namespace Folio.Editor.Windows
 
         private void OnEnable()
         {
-            // Cargar automáticamente: si existe el de usuario, lo usa; si no, intenta el de fábrica
             string userPath = Path.Combine(USER_SAVE_FOLDER, USER_FILE);
             if (File.Exists(userPath))
                 LoadStructure(userPath);
@@ -40,23 +38,19 @@ namespace Folio.Editor.Windows
         private void OnGUI()
         {
             EditorGUILayout.Space(10);
-            EditorGUILayout.LabelField("🧱 Folder Structure Designer", EditorStyles.boldLabel);
-            EditorGUILayout.Space(10);
-
             EditorGUILayout.BeginHorizontal();
-            
-            if (GUILayout.Button("💾 Guardar"))
-                SaveStructure(USER_FILE);
-
-            if (GUILayout.Button("📂 Cargar Usuario"))
-                LoadStructure(Path.Combine(USER_SAVE_FOLDER, USER_FILE));
-
-            if (GUILayout.Button("🔄 Reset Fábrica"))
+            EditorGUILayout.LabelField("🧱 Folder Structure Designer", EditorStyles.boldLabel);
+            if (GUILayout.Button("🔄"))
             {
                 if (EditorUtility.DisplayDialog("Reset", "¿Cargar estructura por defecto del paquete?", "Sí", "No"))
                     LoadDefaultStructure();
             }
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.Space(10);
 
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("💾 Guardar")) SaveStructure(USER_FILE);
+            if (GUILayout.Button("📂 Cargar")) LoadStructure(Path.Combine(USER_SAVE_FOLDER, USER_FILE));
             if (GUILayout.Button("🧱 Crear Estructura"))
             {
                 CreateFoldersRecursive(rootNode, "");
@@ -64,27 +58,63 @@ namespace Folio.Editor.Windows
                 FolderColorManager.UpdateCache(rootNode, "");
                 AssetDatabase.Refresh();
             }
+            
             EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.Space(10);
+            
+            nodesToRemove.Clear();
+            
             scroll = EditorGUILayout.BeginScrollView(scroll);
             if (rootNode == null) rootNode = new FolderNode("Assets");
             DrawNode(rootNode, 0);
             EditorGUILayout.EndScrollView();
+
+            foreach (var node in nodesToRemove)
+            {
+                RemoveNode(rootNode, node);
+            }
+        }
+
+        private void LoadFromFile(string path, string successMessage)
+        {
+            string json = File.ReadAllText(path);
+            var wrapper = JsonUtility.FromJson<FolderTreeWrapper>(json);
+            rootNode = wrapper?.root ?? new FolderNode("Assets");
+            Debug.Log(successMessage);
+        }
+
+        private string GetDefaultDataPath()
+        {
+            var package = UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(FolderStructureWindow).Assembly);
+            return package != null 
+                ? Path.Combine(package.resolvedPath, "Assets/Folio/Resources/FolderDesigner/default_structure.json") 
+                : string.Empty;
         }
 
         private void LoadDefaultStructure()
         {
-            if (File.Exists(DEFAULT_DATA_PATH))
+            // Ruta A: La ruta de fábrica dentro del paquete
+            string factoryPath = GetDefaultDataPath(); 
+            
+            // Ruta B: La ruta de usuario (donde el usuario podría haber puesto una copia de seguridad)
+            string userFallbackPath = Path.Combine(USER_SAVE_FOLDER, "default_structure.json");
+
+            // LÓGICA DE CASCADA:
+            // 1. Intentar cargar desde el paquete (Fábrica)
+            if (File.Exists(factoryPath))
             {
-                string json = File.ReadAllText(DEFAULT_DATA_PATH);
-                var wrapper = JsonUtility.FromJson<FolderTreeWrapper>(json);
-                rootNode = wrapper?.root ?? new FolderNode("Assets");
-                Debug.Log("Folio: Estructura de fábrica cargada.");
+                LoadFromFile(factoryPath, "<color=#00FF00>[🦎 Folio-Flux:]</color> Estructura de fábrica cargada desde el paquete.");
             }
-            else 
+            // 2. Si falla el paquete, intentar buscar el default en la carpeta de usuario
+            else if (File.Exists(userFallbackPath))
             {
-                Debug.LogWarning("No se encontró el archivo de fábrica en: " + DEFAULT_DATA_PATH);
+                LoadFromFile(userFallbackPath, "<color=#00FF00>[🦎 Folio-Flux:]</color> Estructura de fábrica no encontrada en paquete, cargada desde carpeta de usuario.");
+            }
+            // 3. Fallo total
+            else
+            {
+                Debug.LogError($"No se pudo encontrar default_structure.json en ninguna ruta: {factoryPath} ni {userFallbackPath}");
                 rootNode = new FolderNode("Assets");
             }
         }
@@ -93,10 +123,19 @@ namespace Folio.Editor.Windows
         {
             // Asegurar que la carpeta de usuario existe
             if (!Directory.Exists(USER_SAVE_FOLDER))
+            {
                 Directory.CreateDirectory(USER_SAVE_FOLDER);
+                Debug.Log($"Folio: Carpeta creada en {USER_SAVE_FOLDER}");
+            }
 
+            string fullPath = Path.Combine(USER_SAVE_FOLDER, fileName);
             string json = JsonUtility.ToJson(new FolderTreeWrapper { root = rootNode }, true);
-            File.WriteAllText(Path.Combine(USER_SAVE_FOLDER, fileName), json);
+            
+            File.WriteAllText(fullPath, json);
+            
+            // Feedback visual en consola
+            Debug.Log($"<color=#00FF00>[🦎 Folio-Flux:]</color> Estructura de carpetas guardada en: {fullPath}");
+            
             AssetDatabase.Refresh();
         }
 
@@ -104,8 +143,21 @@ namespace Folio.Editor.Windows
         {
             if (File.Exists(fullPath))
             {
-                var wrapper = JsonUtility.FromJson<FolderTreeWrapper>(File.ReadAllText(fullPath));
-                rootNode = wrapper?.root ?? new FolderNode("Assets");
+                try 
+                {
+                    var wrapper = JsonUtility.FromJson<FolderTreeWrapper>(File.ReadAllText(fullPath));
+                    rootNode = wrapper?.root ?? new FolderNode("Assets");
+                    Debug.Log($"<color=#00FF00>[🦎 Folio-Flux:]</color> Estructura cargada correctamente desde: {fullPath}");
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogError($"<color=#00FF00>[🦎 Folio-Flux:]</color> Error al parsear el JSON en {fullPath}. Detalles: {e.Message}");
+                }
+            }
+            else
+            {
+                Debug.LogWarning($"<color=#00FF00>[🦎 Folio-Flux:]</color> No se encontró archivo en {fullPath}. Iniciando estructura vacía.");
+                rootNode = new FolderNode("Assets");
             }
         }
 
@@ -121,11 +173,15 @@ namespace Folio.Editor.Windows
 
             EditorGUILayout.BeginHorizontal();
             node.IsExpanded = EditorGUILayout.Foldout(node.IsExpanded, node.Name, true);
-            if (GUILayout.Button("+", GUILayout.Width(25))) node.Children.Add(new FolderNode("NewFolder"));
+            
+            if (GUILayout.Button("+", GUILayout.Width(25))) 
+            {
+                node.Children.Add(new FolderNode("NewFolder"));
+            }
+            
             if (node != rootNode && GUILayout.Button("🗑", GUILayout.Width(25)))
             {
-                RemoveNode(rootNode, node);
-                return;
+                nodesToRemove.Add(node);
             }
             EditorGUILayout.EndHorizontal();
 

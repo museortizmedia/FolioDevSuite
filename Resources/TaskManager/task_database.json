@@ -3,27 +3,35 @@
         "Productor",
         "Programador",
         "Artista",
-        "Sonido"
+        "Sonido",
+        "QA"
     ],
     "Modules": [
         {
-            "Id": "da6f5f79-6967-49e7-b5e1-b6c02328b706",
-            "ModuleName": "Principal Module",
+            "Id": "cdaf7e9f-1dcc-449b-99e3-dc156ef42a3e",
+            "ModuleName": "Nuevo Módulo",
             "Completed": false,
             "Tasks": [
                 {
-                    "Title": "Nueva tarea",
-                    "Description": "",
-                    "State": 0,
-                    "AssignedTo": "Productor",
-                    "Progress": 15
-                },
-                {
-                    "Title": "Nueva tarea",
-                    "Description": "",
+                    "Title": "Tarea 1",
+                    "Description": "Escribe tu descripción.",
                     "State": 0,
                     "AssignedTo": "Programador",
-                    "Progress": 70
+                    "Progress": 0
+                },
+                {
+                    "Title": "Tarea 2",
+                    "Description": "Escribe tu descripción.",
+                    "State": 2,
+                    "AssignedTo": "Artista",
+                    "Progress": 100
+                },
+                {
+                    "Title": "Tarea 3",
+                    "Description": "Escribe tu descripción.",
+                    "State": 1,
+                    "AssignedTo": "Productor",
+                    "Progress": 56
                 }
             ]
         }

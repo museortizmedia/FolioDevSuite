@@ -8,12 +8,12 @@ namespace Folio.Editor.Windows
     public class TaskManagerWindow : EditorWindow
     {
         private const string SAVE_PATH = "Assets/Folio/Resources/TaskManager/task_database.json";
+        private const string DEFAULT_PATH = "Packages/com.folio.devsuite/Resources/TaskManager/task_database.json";
 
         private TaskDatabase taskDatabase = new();
         private Vector2 scroll;
         private bool isDirty = false;
 
-        // Foldouts por ID del módulo (persisten durante la sesión de ventana)
         private Dictionary<string, bool> moduleFoldouts = new Dictionary<string, bool>();
 
         [MenuItem("Window/Folio/🐝 Nexo: Task Manager", false, 40)]
@@ -304,24 +304,44 @@ namespace Folio.Editor.Windows
             string json = JsonUtility.ToJson(taskDatabase, true);
             File.WriteAllText(SAVE_PATH, json);
 
+            Debug.Log("<color=yellow>[Folio-Nexo:]</color> ¡Tareas Guardadas!");
+
             AssetDatabase.Refresh();
             isDirty = false;
         }
 
         private void LoadData()
         {
-            // Guardar estados actuales de foldouts
             var previousStates = new Dictionary<string, bool>(moduleFoldouts);
 
-            // Cargar base de datos
+            if (!File.Exists(SAVE_PATH))
+            {
+                if (File.Exists(DEFAULT_PATH))
+                {
+                    string directory = Path.GetDirectoryName(SAVE_PATH);
+                    if (!Directory.Exists(directory)){ Directory.CreateDirectory(directory); }
+
+                    File.Copy(DEFAULT_PATH, SAVE_PATH, true);
+                    AssetDatabase.Refresh();
+                    
+                    Debug.Log("<color=yellow>[🐝 Folio-Nexo:]</color> Configuración inicial copiada desde el paquete a Assets.");
+                }
+                else
+                {
+                    Debug.LogError("<color=yellow>[🐝 Folio-Nexo:]</color> No se encontró el archivo de fábrica en: " + DEFAULT_PATH);
+                }
+            }
+
             if (File.Exists(SAVE_PATH))
             {
                 string json = File.ReadAllText(SAVE_PATH);
                 taskDatabase = JsonUtility.FromJson<TaskDatabase>(json);
+                Debug.Log("<color=yellow>[🐝 Folio-Nexo:]</color> Base de datos cargada desde: " + SAVE_PATH);
             }
             else
             {
                 taskDatabase = new TaskDatabase();
+                Debug.LogWarning("<color=yellow>[🐝 Folio-Nexo:]</color> No se pudo cargar ni copiar la base de datos. Iniciando vacía.");
             }
 
             isDirty = false;
