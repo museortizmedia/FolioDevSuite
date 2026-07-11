@@ -2,19 +2,15 @@
   "name": "com.folio.devsuite",
   "version": "1.0.0",
   "displayName": "Folio: DevSuite",
-  "description": "DevSuite profesional para desarrolladores indie: Flux (Estructura), Koda (Documentación viva GDD MGDD) y Nexo (Tareas).",
+  "description": "DevSuite profesional para desarrolladores indie.",
   "unity": "6000.0", 
-  "unityRelease": "5.3f1",
   "author": {
     "name": "Diego Ortiz",
     "email": "museortiz@gmail.com"
   },
   "keywords": [
     "gamedev",
-    "workflow",
-    "folder-structure",
-    "documentation",
-    "task-management"
+    "workflow"
   ],
   "dependencies": {}
 }
