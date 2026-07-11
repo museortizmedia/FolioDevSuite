@@ -1,0 +1,94 @@
+{
+    "root": {
+        "Name": "Assets",
+        "Description": "Carpeta raíz.",
+        "FolderColor": {
+            "r": 0.07262372225522995,
+            "g": 0.8062242865562439,
+            "b": 0.9056603908538818,
+            "a": 1.0
+        },
+        "AllowedExtensions": [],
+        "IsExpanded": true,
+        "Children": [
+            {
+                "rid": 1000
+            }
+        ]
+    },
+    "references": {
+        "version": 2,
+        "RefIds": [
+            {
+                "rid": 1000,
+                "type": {
+                    "class": "FolderNode",
+                    "ns": "Folio.Editor.Windows",
+                    "asm": "Assembly-CSharp-Editor"
+                },
+                "data": {
+                    "Name": "Folio",
+                    "Description": "Folio es la herramienta que te ayuda a organizar tu proyecto. Koda el oso, Nexo la luciérnaga y Flux el camaleón te ayudarán en la gestión de tus tareas, carpetas y documentación.",
+                    "FolderColor": {
+                        "r": 0.9528301954269409,
+                        "g": 0.3364553451538086,
+                        "b": 0.04943930730223656,
+                        "a": 1.0
+                    },
+                    "AllowedExtensions": [],
+                    "IsExpanded": true,
+                    "Children": [
+                        {
+                            "rid": 1001
+                        },
+                        {
+                            "rid": 1002
+                        }
+                    ]
+                }
+            },
+            {
+                "rid": 1001,
+                "type": {
+                    "class": "FolderNode",
+                    "ns": "Folio.Editor.Windows",
+                    "asm": "Assembly-CSharp-Editor"
+                },
+                "data": {
+                    "Name": "Editor",
+                    "Description": "¡CUIDADO! Si tocas estos archivos puede que pierdas tu configuración importante.",
+                    "FolderColor": {
+                        "r": 0.26367804408073428,
+                        "g": 0.9339622855186462,
+                        "b": 0.07489321380853653,
+                        "a": 1.0
+                    },
+                    "AllowedExtensions": [],
+                    "IsExpanded": true,
+                    "Children": []
+                }
+            },
+            {
+                "rid": 1002,
+                "type": {
+                    "class": "FolderNode",
+                    "ns": "Folio.Editor.Windows",
+                    "asm": "Assembly-CSharp-Editor"
+                },
+                "data": {
+                    "Name": "Resources",
+                    "Description": "¡CUIDADO! Aquí están tus datos importantes.",
+                    "FolderColor": {
+                        "r": 0.9128581285476685,
+                        "g": 0.9150943160057068,
+                        "b": 0.06474722921848297,
+                        "a": 1.0
+                    },
+                    "AllowedExtensions": [],
+                    "IsExpanded": true,
+                    "Children": []
+                }
+            }
+        ]
+    }
+}

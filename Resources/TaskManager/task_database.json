@@ -1,0 +1,33 @@
+{
+    "Users": [
+        "Productor",
+        "Programador",
+        "Artista",
+        "Sonido"
+    ],
+    "Modules": [
+        {
+            "Id": "da6f5f79-6967-49e7-b5e1-b6c02328b706",
+            "ModuleName": "Principal Module",
+            "Completed": false,
+            "Tasks": [
+                {
+                    "Title": "Nueva tarea",
+                    "Description": "",
+                    "State": 0,
+                    "AssignedTo": "Productor",
+                    "Progress": 15
+                },
+                {
+                    "Title": "Nueva tarea",
+                    "Description": "",
+                    "State": 0,
+                    "AssignedTo": "Programador",
+                    "Progress": 70
+                }
+            ]
+        }
+    ],
+    "ActiveModuleId": "",
+    "ProjectNotes": ""
+}
