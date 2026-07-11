@@ -84,29 +84,22 @@ namespace Folio.Editor.Windows
             Debug.Log(successMessage);
         }
 
-        private string GetDefaultDataPath()
-        {
-            var package = UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(FolderStructureWindow).Assembly);
-            return package != null 
-                ? Path.Combine(package.resolvedPath, "Packages/com.folio.devsuite/Resources/FolderDesigner/default_structure.json") 
-                : string.Empty;
-        }
-
         private void LoadDefaultStructure()
         {
-            string factoryPath = GetDefaultDataPath(); 
-            string userFallbackPath = Path.Combine(USER_SAVE_FOLDER, "default_structure.json");
-            if (File.Exists(factoryPath))
+            string defaultPath = "Packages/com.folio.devsuite/Resources/FolderDesigner/default_structure.json"; 
+            string userPath = "Assets/Folio/Resources/FolderDesigner/default_structure.json"; 
+
+            if (File.Exists(defaultPath))
             {
-                LoadFromFile(factoryPath, "<color=#00FF00>[🦎 Folio-Flux:]</color> Estructura de fábrica cargada desde el paquete.");
+                LoadFromFile(defaultPath, "<color=#00FF00>[🦎 Folio-Flux:]</color> Estructura de fábrica cargada desde el paquete.");
             }
-            else if (File.Exists(userFallbackPath))
+            else if (File.Exists(userPath))
             {
-                LoadFromFile(userFallbackPath, "<color=#00FF00>[🦎 Folio-Flux:]</color> Estructura de fábrica no encontrada en paquete, cargada desde carpeta de usuario.");
+                LoadFromFile(userPath, "<color=#00FF00>[🦎 Folio-Flux:]</color> Estructura de fábrica no encontrada en paquete, cargada desde carpeta de usuario.");
             }
             else
             {
-                Debug.LogError($"No se pudo encontrar default_structure.json en ninguna ruta: {factoryPath} ni {userFallbackPath}");
+                Debug.LogError($"No se pudo encontrar default_structure.json en ninguna ruta");
                 rootNode = new FolderNode("Assets");
             }
         }
