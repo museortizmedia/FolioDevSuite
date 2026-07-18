@@ -13,6 +13,9 @@
         "Children": [
             {
                 "rid": 1000
+            },
+            {
+                "rid": 1001
             }
         ]
     },
@@ -39,16 +42,39 @@
                     "IsExpanded": true,
                     "Children": [
                         {
-                            "rid": 1001
+                            "rid": 1002
                         },
                         {
-                            "rid": 1002
+                            "rid": 1003
                         }
                     ]
                 }
             },
             {
                 "rid": 1001,
+                "type": {
+                    "class": "FolderNode",
+                    "ns": "Folio.Editor.Windows",
+                    "asm": "Assembly-CSharp-Editor"
+                },
+                "data": {
+                    "Name": "Data",
+                    "Description": "Aquí van tus ScriptableObjects",
+                    "FolderColor": {
+                        "r": 0.46698111295700076,
+                        "g": 1.0,
+                        "b": 0.8353779315948486,
+                        "a": 1.0
+                    },
+                    "AllowedExtensions": [
+                        "asset"
+                    ],
+                    "IsExpanded": true,
+                    "Children": []
+                }
+            },
+            {
+                "rid": 1002,
                 "type": {
                     "class": "FolderNode",
                     "ns": "Folio.Editor.Windows",
@@ -69,7 +95,7 @@
                 }
             },
             {
-                "rid": 1002,
+                "rid": 1003,
                 "type": {
                     "class": "FolderNode",
                     "ns": "Folio.Editor.Windows",

@@ -26,7 +26,11 @@ namespace Folio.Editor
                 Rect hitRect = new Rect(selectionRect.x, selectionRect.y, selectionRect.width, selectionRect.height);
                 if (hitRect.Contains(Event.current.mousePosition))
                 {
-                    string tooltipText = $"<b>{Path.GetFileName(path)}</b>\n<i>{meta.Description}</i>\n<color=cyan>Exts:</color> {string.Join(", ", meta.Extensions)}";
+                    string tooltipText = $"<b>{Path.GetFileName(path)}</b>\n<i>{meta.Description}</i>";
+                    if (meta.Extensions != null && meta.Extensions.Count > 0)
+                    {
+                        tooltipText += $"\n<color=cyan>Exts:</color> {string.Join(", ", meta.Extensions)}";
+                    }
                     GUI.Label(hitRect, new GUIContent("", tooltipText));
                 }
             }
