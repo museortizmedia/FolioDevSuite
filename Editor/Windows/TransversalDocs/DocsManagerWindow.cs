@@ -909,7 +909,7 @@ namespace Folio.Editor.Windows
                 // BOTÓN PARA ABRIR/CERRAR
                 // -------------------------
                 Vector2 mousePosition = Event.current.mousePosition;
-                GUIStyle nameStyle = new GUIStyle(EditorStyles.label)
+                GUIStyle nameStyle = new GUIStyle(EditorStyles.boldLabel)
                 {
                     alignment = TextAnchor.MiddleLeft
                 };
@@ -921,12 +921,20 @@ namespace Folio.Editor.Windows
 
                 GUIContent titleContent = new GUIContent($"📄 {displayName}");
                 Rect titleRect = GUILayoutUtility.GetRect(titleContent, nameStyle);
+                Vector2 textSize = nameStyle.CalcSize(titleContent);
                 if (titleRect.Contains(mousePosition))
                 {
-                    nameStyle.fontStyle = FontStyle.Bold;
-                    
-                    // Cambia el cursor a la mano interactiva para reforzar la UX
                     EditorGUIUtility.AddCursorRect(titleRect, MouseCursor.Link);
+
+                    float lineThickness = 1f;
+                    Rect underlineRect = new Rect(
+                        titleRect.x, 
+                        titleRect.yMax - 2,
+                        textSize.x,
+                        lineThickness
+                    );
+
+                    EditorGUI.DrawRect(underlineRect, nameStyle.normal.textColor);
                 }
                 else
                 {
