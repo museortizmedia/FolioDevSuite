@@ -32,6 +32,8 @@ namespace Folio.Editor.Windows
         private bool pendingDelete = false;
         private string docToDeletePath = null;
 
+        private const int MAX_SAFE_EDITOR_CHARS = 16000;
+
 
         // IMAGENES
         private const string ImagesFolderRelative = "Assets/Folio/Resources/DocsManager/imagenes";
@@ -577,6 +579,11 @@ namespace Folio.Editor.Windows
             Selection.activeObject = folder;
             EditorGUIUtility.PingObject(folder);
         }
+
+        private void OpenInExternalIDE(string filePath)
+        {
+            UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(filePath, 1);
+        }
         #endregion
         #region Imagenes
         private void ImportImage()
@@ -901,16 +908,33 @@ namespace Folio.Editor.Windows
                 // -------------------------
                 // BOTÓN PARA ABRIR/CERRAR
                 // -------------------------
-                GUIStyle nameStyle = new(EditorStyles.boldLabel)
+                Vector2 mousePosition = Event.current.mousePosition;
+                GUIStyle nameStyle = new GUIStyle(EditorStyles.label)
                 {
-                    normal = { textColor = GUI.skin.label.normal.textColor }
+                    alignment = TextAnchor.MiddleLeft
                 };
+                nameStyle.normal.textColor = GUI.skin.label.normal.textColor;
 
                 string displayName = fileName;
                 if (isModified.ContainsKey(filePath) && isModified[filePath])
                     displayName += " ⚠️";
 
-                if (GUILayout.Button($"📄 {displayName}", nameStyle))
+                GUIContent titleContent = new GUIContent($"📄 {displayName}");
+                Rect titleRect = GUILayoutUtility.GetRect(titleContent, nameStyle);
+                if (titleRect.Contains(mousePosition))
+                {
+                    nameStyle.fontStyle = FontStyle.Bold;
+                    
+                    // Cambia el cursor a la mano interactiva para reforzar la UX
+                    EditorGUIUtility.AddCursorRect(titleRect, MouseCursor.Link);
+                }
+                else
+                {
+                    nameStyle.fontStyle = FontStyle.Normal;
+                }
+
+
+                if (GUI.Button(titleRect, titleContent, nameStyle))
                 {
                     if (selectedIndex != i)
                     {
@@ -933,10 +957,38 @@ namespace Folio.Editor.Windows
 
                 if (selectedIndex == i && !isEditing && GUILayout.Button(new GUIContent("✏️", "Editar")))
                 {
-                    if (!editingBuffers.ContainsKey(filePath))
-                        editingBuffers[filePath] = File.ReadAllText(filePath);
+                    if (File.Exists(filePath))
+                    {
+                        string loadedText = File.ReadAllText(filePath, System.Text.Encoding.UTF8);
 
-                    isEditing = true;
+                        // Comprobar si el documento supera el límite seguro de caracteres
+                        if (loadedText.Length > MAX_SAFE_EDITOR_CHARS)
+                        {
+                            bool openExternal = EditorUtility.DisplayDialog(
+                                "Documento Extenso",
+                                $"Este documento tiene {loadedText.Length:N0} caracteres y puede causar problemas de renderizado en el editor interno de Unity.\n\n" +
+                                "¿Deseas abrirlo en tu editor de código / IDE externo configurado?",
+                                "Abrir en IDE Externo",
+                                "Continuar de todos modos"
+                            );
+
+                            if (openExternal)
+                            {
+                                OpenInExternalIDE(filePath);
+                            }
+                            else
+                            {
+                                editingBuffers[filePath] = loadedText.Replace("\r\n", "\n").Replace('“', '"').Replace('”', '"').Replace('’', '\'');
+                                isEditing = true;
+                            }
+                        }
+                        else
+                        {
+                            // Cargar normal para edición interna
+                            editingBuffers[filePath] = loadedText.Replace("\r\n", "\n").Replace('“', '"').Replace('”', '"').Replace('’', '\'');
+                            isEditing = true;
+                        }
+                    }
                 }
 
                 if (selectedIndex == i && isEditing)
@@ -945,7 +997,7 @@ namespace Folio.Editor.Windows
                     {
                         if (EditorUtility.DisplayDialog("Guardar", $"¿Guardar '{fileName}'?", "Sí", "Cancelar"))
                         {
-                            File.WriteAllText(filePath, editingBuffers[filePath]);
+                            File.WriteAllText(filePath, editingBuffers[filePath].Replace("\r\n", "\n").Replace('“', '"').Replace('”', '"').Replace('’', '\''));
                             isModified[filePath] = false;
                             isEditing = false;
                             AssetDatabase.Refresh();
@@ -1032,34 +1084,43 @@ namespace Folio.Editor.Windows
                     if (isEditing)
                     {
                         EditorGUILayout.Space(5);
-                        // Aplicamos el estilo de fondo/texto al área de edición
-                        scrollEditorContent = EditorGUILayout.BeginScrollView(scrollEditorContent, editorStyle, GUILayout.Height(300));
+
+                        // 1. Estilo totalmente neutro y seguro para textos largos
+                        GUIStyle areaStyle = new GUIStyle(EditorStyles.textArea)
+                        {
+                            wordWrap = true,
+                            richText = false, // Evita que la sintaxis o emojis corrompan la malla de texto
+                            fontSize = 12
+                        };
+
+                        // Ajustar contraste de texto
+                        Color textColor = isLightMode ? Color.black : new Color(0.9f, 0.9f, 0.9f, 1f);
+                        areaStyle.normal.textColor = textColor;
+                        areaStyle.focused.textColor = textColor;
+                        areaStyle.active.textColor = textColor;
 
                         string currentBuffer = editingBuffers[filePath];
 
-                        // Usamos un estilo derivado para el TextArea puro, sin fondo para que el scrollview lo maneje
-                        GUIStyle textAreaStyle = new GUIStyle(editorStyle)
-                        {
-                            normal = { background = null }
-                        };
+                        // 2. Control de cambios nativo sin colapso de layout
+                        EditorGUI.BeginChangeCheck();
 
-                        string newBuffer = GUILayout.TextArea(currentBuffer, textAreaStyle, GUILayout.ExpandHeight(true));
+                        // ScrollView de tamaño fijo
+                        scrollEditorContent = EditorGUILayout.BeginScrollView(scrollEditorContent, GUILayout.Height(350));
 
-                        if (newBuffer != currentBuffer)
-                        {
-                            editingBuffers[filePath] = newBuffer;
-                            // Comprobación de modificación: si el nuevo contenido es diferente al original guardado
-                            if (!File.Exists(filePath) || newBuffer != File.ReadAllText(filePath))
-                            {
-                                isModified[filePath] = true;
-                            }
-                            else
-                            {
-                                isModified[filePath] = false;
-                            }
-                        }
+                        // TextArea que calcula su altura dinámicamente según el contenido
+                        string newBuffer = EditorGUILayout.TextArea(
+                            currentBuffer, 
+                            areaStyle, 
+                            GUILayout.ExpandHeight(true)
+                        );
 
                         EditorGUILayout.EndScrollView();
+
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            editingBuffers[filePath] = newBuffer;
+                            isModified[filePath] = true;
+                        }
                     }
                     else
                     {
