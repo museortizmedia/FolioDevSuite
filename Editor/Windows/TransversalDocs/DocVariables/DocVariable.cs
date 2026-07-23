@@ -59,7 +59,9 @@ namespace Folio.Editor.Windows.DocManager.DocVariables
                             {
                                 case DocVariableType.String: var.stringValue = val.Trim('"'); break;
                                 case DocVariableType.Int: int.TryParse(val, out var.intValue); break;
-                                case DocVariableType.Float: float.TryParse(val, out var.floatValue); break;
+                                case DocVariableType.Float:
+                                    float.TryParse(val.Replace(',', '.'), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var.floatValue); 
+                                    break;
                                 case DocVariableType.Bool: bool.TryParse(val, out var.boolValue); break;
                             }
                             break;
@@ -86,6 +88,8 @@ namespace Folio.Editor.Windows.DocManager.DocVariables
                 mdText = mdText.Remove(start, (end + EndTag.Length) - start);
             }
 
+            mdText = mdText.TrimStart();
+
             // Construir bloque nuevo
             System.Text.StringBuilder sb = new();
             sb.AppendLine(StartTag);
@@ -100,7 +104,7 @@ namespace Folio.Editor.Windows.DocManager.DocVariables
                 {
                     DocVariableType.String => $"\"{v.stringValue}\"",
                     DocVariableType.Int => v.intValue.ToString(),
-                    DocVariableType.Float => v.floatValue.ToString(),
+                    DocVariableType.Float => v.floatValue.ToString(System.Globalization.CultureInfo.InvariantCulture),
                     DocVariableType.Bool => v.boolValue.ToString().ToLower(),
                     _ => ""
                 });

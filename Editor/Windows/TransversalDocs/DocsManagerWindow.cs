@@ -1005,9 +1005,14 @@ namespace Folio.Editor.Windows
                     {
                         if (EditorUtility.DisplayDialog("Guardar", $"¿Guardar '{fileName}'?", "Sí", "Cancelar"))
                         {
-                            File.WriteAllText(filePath, editingBuffers[filePath].Replace("\r\n", "\n").Replace('“', '"').Replace('”', '"').Replace('’', '\''));
+                            string savedText = editingBuffers[filePath].Replace("\r\n", "\n").Replace('“', '"').Replace('”', '"').Replace('’', '\'');
+        
+                            File.WriteAllText(filePath, savedText);
                             isModified[filePath] = false;
                             isEditing = false;
+
+                            DocVariablesDB.Set(filePath, DocVariable.ExtractVariables(savedText));
+                            
                             AssetDatabase.Refresh();
                         }
                     }
