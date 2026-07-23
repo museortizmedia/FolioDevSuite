@@ -1145,11 +1145,7 @@ namespace Folio.Editor.Windows
                     }
                     else
                     {
-                        //string content = File.ReadAllText(filePath);
-                        string content = Utils.MarkdownRenderer.Preprocess(
-                            File.ReadAllText(filePath),
-                            DocVariablesDB.GetAll()
-                        );
+                        string content = File.ReadAllText(filePath);
 
                         EditorGUILayout.Space(5);
 
@@ -1157,7 +1153,7 @@ namespace Folio.Editor.Windows
                         EditorGUILayout.BeginVertical(editorStyle);
 
                         // Le pasamos el modo de tema al renderer por si lo necesita
-                        Utils.MarkdownRenderer.DrawFormattedMarkdown(content, isLightMode, DocVariablesDB. Variables[filePath]);
+                        Utils.MarkdownRenderer.DrawFormattedMarkdown(content, isLightMode, DocVariablesDB.GetAll());
 
                         EditorGUILayout.EndVertical();
                     }

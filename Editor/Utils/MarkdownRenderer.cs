@@ -123,46 +123,34 @@ namespace Folio.Editor.Utils
                 RegexOptions.Multiline
             ).TrimStart();
 
-            // 2. Procesar cada variable registrada en la lista
-            for (int i = 0; i < vars.Count; i++)
-            {
-                var v = vars[i];
+            var sortedVars = vars
+                .Where(v => !string.IsNullOrEmpty(v.name))
+                .OrderByDescending(v => v.name.Length)
+                .ToList();
 
+            // 2. Procesar cada variable registrada en la lista
+            foreach (var v in sortedVars)
+            {
                 string value = v.type switch
                 {
                     DocVariableType.String => v.stringValue,
                     DocVariableType.Int => v.intValue.ToString(),
                     DocVariableType.Float => v.floatValue.ToString(),
+                    //DocVariableType.Float => v.floatValue.ToString(System.Globalization.CultureInfo.InvariantCulture),
                     DocVariableType.Bool => v.boolValue ? "true" : "false",
                     _ => ""
                 };
 
-                // Sustituir por NOMBRE ($$ y $)
-                if (!string.IsNullOrEmpty(v.name))
-                {
-                    // Variables vinculadas ($$)
-                    string linkedTag = "$$[" + v.name + "]";
-                    string linkedRep = keepSyntax ? "$$[" + value + "]" : value;
-                    markdown = markdown.Replace(linkedTag, linkedRep);
+                // Preparar las etiquetas finales
+                string linkedTag = "$$[" + v.name + "]";
+                string linkedRep = keepSyntax ? "$$[" + value + "]" : value;
 
-                    // Variables locales ($)
-                    string localTag = "$[" + v.name + "]";
-                    string localRep = keepSyntax ? "$[" + value + "]" : value;
-                    markdown = markdown.Replace(localTag, localRep);
-                }
+                string localTag = "$[" + v.name + "]";
+                string localRep = keepSyntax ? "$[" + value + "]" : value;
 
-                // Sustituir por ÍNDICE 1-based ($$ y $)
-                int index = i + 1;
-
-                // Vinculadas ($$) por índice
-                string linkedIdxTag = "$$[" + index + "]";
-                string linkedIdxRep = keepSyntax ? "$$[" + value + "]" : value;
-                markdown = markdown.Replace(linkedIdxTag, linkedIdxRep);
-
-                // Locales ($) por índice
-                string localIdxTag = "$[" + index + "]";
-                string localIdxRep = keepSyntax ? "$[" + value + "]" : value;
-                markdown = markdown.Replace(localIdxTag, localIdxRep);
+                // Reemplazar etiquetas vinculadas ($$) y locales ($)
+                markdown = markdown.Replace(linkedTag, linkedRep);
+                markdown = markdown.Replace(localTag, localRep);
             }
 
             return markdown;
