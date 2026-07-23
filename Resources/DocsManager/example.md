@@ -23,7 +23,7 @@ Listas:
 
 Enlaces:
 [Documentación oficial](https://docs.unity3d.com/)
-[Foro de Unity](https://forum.unity.com)
+[Documentación Folio](https://github.com/museortizmedia/FolioDevSuite/tree/master)
 
 Imágenes:
 ![ImagenSmall|sm](Assets/Folio/Resources/DocsManager/imagenes/icon.png)
