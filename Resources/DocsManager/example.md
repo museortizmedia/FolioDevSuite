@@ -1,3 +1,11 @@
+<!-- DOCVARS
+name: DevSuiteName; type: String; value: "Folio"
+DOCVARS -->
+
+
+
+
+
 # Header 1
 ## Header 2
 ### Header 3
@@ -5,19 +13,24 @@
 
 Texto normal:
 texto en **negrita**
-texto en __cursiva__
-texto en **negrita y __cursiva__**
 
 Listas:
 - **Item 1**
-- __Item 2__
-- Item 3
-* Item 1
-* Item 1
-* Item 1
+- Item 2
+* Item 3
+
+`Code Snniper`
 
 Enlaces:
 [Documentación oficial](https://docs.unity3d.com/)
 [Foro de Unity](https://forum.unity.com)
 
-`Code Snniper`
+Imágenes:
+![ImagenSmall|sm](Assets/Folio/Resources/DocsManager/imagenes/icon.png)
+![ImagenMedium|md](Assets/Folio/Resources/DocsManager/imagenes/icon.png)
+![ImagenLarge|lg](Assets/Folio/Resources/DocsManager/imagenes/icon.png)
+![ImagenPixeles|50](Assets/Folio/Resources/DocsManager/imagenes/icon.png)
+
+Interpretación de Variables
+Variable: $[DevSuiteName]  (En este documento)
+Variable vinculada: $$[NuevaVariable] (Variable en otro documento)
