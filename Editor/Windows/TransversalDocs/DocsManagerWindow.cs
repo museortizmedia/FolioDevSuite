@@ -395,7 +395,7 @@ namespace Folio.Editor.Windows
                 if (replaceVars)
                 {
                     if (DocVariablesDB.Variables.ContainsKey(path))
-                        content = Utils.MarkdownRenderer.Preprocess(content, DocVariablesDB.Variables[path], false);
+                        content = Utils.MarkdownRenderer.Preprocess(content, DocVariablesDB.GetAll(), false);
                 }
 
                 // -------------------------------
@@ -1027,7 +1027,15 @@ namespace Folio.Editor.Windows
 
                 if (GUILayout.Button(new GUIContent("🗑", "Eliminar"), GUILayout.Width(30)))
                 {
-                    if (EditorUtility.DisplayDialog("Eliminar", $"¿Eliminar '{fileName}'?", "Sí", "Cancelar"))
+                    bool hasVariables = DocVariablesDB.Variables.ContainsKey(filePath) && DocVariablesDB.Variables[filePath].Count > 0;
+
+                    string dialogMessage = $"¿Eliminar '{fileName}'?";
+                    if (hasVariables)
+                    {
+                        dialogMessage += $"\n\n⚠️ Este documento contiene variables asociadas que también se eliminarán. " + $"Podrían romperse las referencias en otros documentos.";
+                    }
+
+                    if (EditorUtility.DisplayDialog("Eliminar documento", dialogMessage, "Sí, eliminar", "Cancelar"))
                     {
                         pendingDelete = true;
                         docToDeletePath = filePath;
@@ -1097,7 +1105,7 @@ namespace Folio.Editor.Windows
                         GUIStyle areaStyle = new GUIStyle(EditorStyles.textArea)
                         {
                             wordWrap = true,
-                            richText = false, // Evita que la sintaxis o emojis corrompan la malla de texto
+                            richText = false,
                             fontSize = 12
                         };
 
@@ -1135,7 +1143,7 @@ namespace Folio.Editor.Windows
                         //string content = File.ReadAllText(filePath);
                         string content = Utils.MarkdownRenderer.Preprocess(
                             File.ReadAllText(filePath),
-                            DocVariablesDB.Variables[filePath]
+                            DocVariablesDB.GetAll()
                         );
 
                         EditorGUILayout.Space(5);
@@ -1144,7 +1152,7 @@ namespace Folio.Editor.Windows
                         EditorGUILayout.BeginVertical(editorStyle);
 
                         // Le pasamos el modo de tema al renderer por si lo necesita
-                        Utils.MarkdownRenderer.DrawFormattedMarkdown(content, isLightMode, DocVariablesDB.Variables[filePath]);
+                        Utils.MarkdownRenderer.DrawFormattedMarkdown(content, isLightMode, DocVariablesDB. Variables[filePath]);
 
                         EditorGUILayout.EndVertical();
                     }
@@ -1190,10 +1198,30 @@ namespace Folio.Editor.Windows
                 string filePath = docToDeletePath;
                 docToDeletePath = null;
 
-                File.Delete(filePath);
+                // 1. Eliminar archivo .md del disco
+                if (File.Exists(filePath))
+                {
+                    File.Delete(filePath);
+                }
+
+                // 2. Limpiar referencias en diccionarios locales
                 editingBuffers.Remove(filePath);
                 isModified.Remove(filePath);
+                showVariablesPanel.Remove(filePath);
+
+                // 3. Eliminar variables del documento en la DB global
+                if (DocVariablesDB.Variables.ContainsKey(filePath))
+                {
+                    DocVariablesDB.Variables.Remove(filePath);
+                }
+
+                // 4. Regenerar el archivo C# (DocVariables.cs) con las variables restantes
+                List<DocVariable> remainingVars = DocVariablesDB.GetAll();
+                DocVariablesGenerator.GenerateRuntimeClass(remainingVars);
+
+                // 5. Refrescar la lista de documentos y el AssetDatabase de Unity
                 RefreshDocList();
+                AssetDatabase.Refresh();
             }
         }
     }

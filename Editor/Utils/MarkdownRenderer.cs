@@ -56,18 +56,15 @@ namespace Folio.Editor.Utils
             if (string.IsNullOrEmpty(markdown)) return;
 
             // 1. Preprocesamiento (Aplicar valores de las variables)
-            // Si se proporcionan variables documentales, se aplican sus valores al texto renderizado
             if (vars != null)
             {
                 markdown = Preprocess(markdown, vars, true);
             }
 
-            // 2. Procesamiento inicial (Resaltado de Variables)
-            // Se resaltan las variables documentales en el texto renderizado para observar el origen de los valores
+            // 2. Procesamiento inicial (Resaltado de Variables diferenciando tablas de texto normal)
             string highlightedContent = HighlightVariables(markdown);
 
             // 3. Renderizado Línea por Línea
-            // Se analiza cada línea del texto buscando claves Markdown para renderizarlas con el estilo correspondiente
             var lines = highlightedContent.Split('\n');
             GUIStyle baseRichStyle = GetBaseRichStyle(isLightMode);
 
@@ -75,7 +72,6 @@ namespace Folio.Editor.Utils
             {
                 string line = lines[i];
 
-                // Si la línea está vacía, se salta, añadiendo un espacio para mejorar la legibilidad
                 if (string.IsNullOrWhiteSpace(line)) { EditorGUILayout.Space(4); continue; }
 
                 string trimmedLine = line.Trim();
@@ -94,7 +90,8 @@ namespace Folio.Editor.Utils
                         {
                             rows.Add(ParseTableRow(nextTrimmedLine));
                             j++;
-                        }else{ break; }
+                        }
+                        else { break; }
                     }
 
                     DrawTable(rows, isLightMode);
@@ -115,11 +112,10 @@ namespace Folio.Editor.Utils
         #region Preprocessing
         public static string Preprocess(string markdown, List<DocVariable> vars, bool keepSyntax = true)
         {
-            // ... (código de Preprocess) ...
             if (string.IsNullOrEmpty(markdown) || vars == null)
                 return markdown;
 
-            // 1. Eliminar bloque
+            // 1. Eliminar bloque DOCVARS si existe
             markdown = Regex.Replace(
                 markdown,
                 @"<!--\s*DOCVARS[\s\S]*?-->",
@@ -127,11 +123,10 @@ namespace Folio.Editor.Utils
                 RegexOptions.Multiline
             ).TrimStart();
 
-
-            // 2. Procesar variables tipo $[VARIABLE]
-            foreach (var v in vars)
+            // 2. Procesar cada variable registrada en la lista
+            for (int i = 0; i < vars.Count; i++)
             {
-                string tag = "$[" + v.name + "]";
+                var v = vars[i];
 
                 string value = v.type switch
                 {
@@ -142,38 +137,78 @@ namespace Folio.Editor.Utils
                     _ => ""
                 };
 
-                string replacement = keepSyntax ? "$[" + value + "]" : value;
-                markdown = markdown.Replace(tag, replacement);
+                // Sustituir por NOMBRE ($$ y $)
+                if (!string.IsNullOrEmpty(v.name))
+                {
+                    // Variables vinculadas ($$)
+                    string linkedTag = "$$[" + v.name + "]";
+                    string linkedRep = keepSyntax ? "$$[" + value + "]" : value;
+                    markdown = markdown.Replace(linkedTag, linkedRep);
+
+                    // Variables locales ($)
+                    string localTag = "$[" + v.name + "]";
+                    string localRep = keepSyntax ? "$[" + value + "]" : value;
+                    markdown = markdown.Replace(localTag, localRep);
+                }
+
+                // Sustituir por ÍNDICE 1-based ($$ y $)
+                int index = i + 1;
+
+                // Vinculadas ($$) por índice
+                string linkedIdxTag = "$$[" + index + "]";
+                string linkedIdxRep = keepSyntax ? "$$[" + value + "]" : value;
+                markdown = markdown.Replace(linkedIdxTag, linkedIdxRep);
+
+                // Locales ($) por índice
+                string localIdxTag = "$[" + index + "]";
+                string localIdxRep = keepSyntax ? "$[" + value + "]" : value;
+                markdown = markdown.Replace(localIdxTag, localIdxRep);
             }
 
             return markdown;
         }
-
         private static string HighlightVariables(string markdown)
         {
-            // ... (código para resaltar variables) ...
-            string highlightedContent = markdown;
+            var lines = markdown.Split('\n');
 
-            // 2.1. Resaltar Variables Vinculadas (Lectura) $$[...] en AZUL
-            highlightedContent = Regex.Replace(
-                highlightedContent,
-                @"\$\$\[(.*?)\]",
-                match => $"<color={LinkedVariableColor}>{match.Value}</color>",
-                RegexOptions.Singleline
-            );
+            for (int i = 0; i < lines.Length; i++)
+            {
+                string line = lines[i];
+                string trimmedLine = line.Trim();
 
-            // 2.2. Resaltar Variables Mutables $[...] en VERDE, EXCLUYENDO $$[...]
-            highlightedContent = Regex.Replace(
-                highlightedContent,
-                @"(?<!\$)\$\[(.*?)\]",
-                match => $"<color={VariableColor}>{match.Value}</color>",
-                RegexOptions.Singleline
-            );
+                if (IsTableRow(trimmedLine))
+                {
+                    // EN TABLA: Limpiar sintaxis $[...] y $$[...] dejando solo el valor en texto plano
+                    line = Regex.Replace(line, @"\$\$\[(.*?)\]", "$1");
+                    line = Regex.Replace(line, @"(?<!\$)\$\[(.*?)\]", "$1");
+                }
+                else
+                {
+                    // EN LÍNEA NORMAL: Mostrar solo el valor formateado/resaltado sin corchetes
+                    // 2.1. Variables Vinculadas $$[...] en AZUL
+                    line = Regex.Replace(
+                        line,
+                        @"\$\$\[(.*?)\]",
+                        match => $"<color={LinkedVariableColor}>{match.Groups[1].Value}</color>",
+                        RegexOptions.Singleline
+                    );
 
-            return highlightedContent;
+                    // 2.2. Variables Mutables $[...] en VERDE
+                    line = Regex.Replace(
+                        line,
+                        @"(?<!\$)\$\[(.*?)\]",
+                        match => $"<color={VariableColor}>{match.Groups[1].Value}</color>",
+                        RegexOptions.Singleline
+                    );
+                }
+
+                lines[i] = line;
+            }
+
+            return string.Join("\n", lines);
         }
         #endregion
-
+        
         #region Processing
         // Analiza las lineas buscando claves Markdown para renderizarlas con el estilo correspondiente
         private static void DrawFormattedLine(string line, bool isLightMode, GUIStyle baseRichStyle)

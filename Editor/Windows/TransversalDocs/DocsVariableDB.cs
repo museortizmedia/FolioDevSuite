@@ -23,21 +23,21 @@ public static class DocVariablesDB
     }
 
     public static void LoadAll(string docsFolderPath)
-{
-    Variables.Clear();
-
-    if (!Directory.Exists(docsFolderPath))
-        return;
-
-    string[] files = Directory.GetFiles(docsFolderPath, "*.md", SearchOption.AllDirectories);
-
-    foreach (string file in files)
     {
-        string md = File.ReadAllText(file);
-        var vars = DocVariable.ExtractVariables(md);
+        Variables.Clear();
 
-        Set(file, vars);
+        if (!Directory.Exists(docsFolderPath))
+            return;
+
+        string[] files = Directory.GetFiles(docsFolderPath, "*.md", SearchOption.AllDirectories);
+
+        foreach (string file in files)
+        {
+            string md = File.ReadAllText(file);
+            var vars = DocVariable.ExtractVariables(md);
+
+            Set(file, vars);
+        }
     }
-}
 
 }
